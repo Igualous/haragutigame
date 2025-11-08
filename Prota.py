@@ -1,13 +1,13 @@
 import pygame
 
-class Robot(pygame.sprite.Sprite):
+class Prota(pygame.sprite.Sprite):
 
     def __init__(self, screen_width, screen_height):
         super().__init__()
 
-        self.image = pygame.image.load('media/robot.png') # sprite
+        self.image = pygame.image.load('media/prota_frente.png') # sprite
 
-        self.rect = self.image.get_rect(midbottom = (screen_width / 2, screen_height)) # posicao
+        self.rect = self.image.get_rect(midbottom = (screen_width / 2, screen_height / 2)) # posicao
  
         self.speed = 6 # velocidade
 
@@ -22,6 +22,10 @@ class Robot(pygame.sprite.Sprite):
             self.rect.x += self.speed
         elif keys[pygame.K_LEFT]:
             self.rect.x -= self.speed
+        elif keys[pygame.K_UP]:
+            self.rect.y -= self.speed
+        elif keys[pygame.K_DOWN]:
+            self.rect.y += self.speed
 
     def constrain_movement(self):
         if self.rect.right > self.screen_width:

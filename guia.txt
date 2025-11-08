@@ -7,3 +7,7 @@
 Cores em RGB (red, green, blue) -> 0 a 255
 
 Chamadas de métodos passam o parâmetro (self, x, y), automaticamente, então os métodos das classes precisam receber o "self"
+
+LINKS IMPORTANTES:
+resize image: https://imageresizer.com/pt
+remove background: https://www.remove.bg/pt-br
