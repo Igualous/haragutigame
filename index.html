@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard do Professor - Intervenção Pedagógica</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos Gerais */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            color: #343a40;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* Cabeçalho */
+        .header {
+            background-color: #007bff; /* Azul profissional */
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            margin-left: 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .header-nav a:hover, .header-nav a.active {
+            background-color: #0056b3;
+        }
+
+        /* Seções e Títulos */
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 5px solid #007bff;
+            padding-left: 10px;
+        }
+
+        /* Tabela de Diagnóstico */
+        .diagnosis-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .diagnosis-table th, .diagnosis-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .diagnosis-table th {
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+        .diagnosis-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .badge-low {
+            background-color: #dc3545; /* Vermelho para desempenho crítico */
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .badge-medium {
+            background-color: #ffc107; /* Amarelo para atenção */
+            color: #343a40;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .badge-high {
+            background-color: #28a745; /* Verde para desempenho bom */
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .code-bncc {
+            font-family: monospace;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        /* Área de Recomendação */
+        .recommendation-card {
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .recommendation-icon {
+            font-size: 30px;
+            color: #20c997; /* Verde/Ciano para Intervenção */
+            margin-right: 20px;
+        }
+        .recommendation-content {
+            flex-grow: 1;
+        }
+        .recommendation-turma {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        .recommendation-bncc {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .btn-view-plan {
+            background-color: #20c997; /* Botão de Ação: Ciano/Verde */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+        .btn-view-plan:hover {
+            background-color: #1aae88;
+        }
+        
+        /* Área de Mensagem Nova Escola */
+        .source-note {
+            text-align: right;
+            font-style: italic;
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-logo">PLATAFORMA EDUCACIONAL</div>
+        <div class="header-nav">
+            <a href="#" class="active"><i class="fas fa-users"></i> Turmas</a> 
+            <a href="#"><i class="fas fa-clipboard-list"></i> Avaliações</a> 
+            <a href="#"><i class="fas fa-user-circle"></i> Meu Perfil</a>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <h2 class="section-title"><i class="fas fa-chart-bar"></i> Diagnóstico de Desempenho por Habilidade</h2>
+
+        <p class="text-muted">Desempenho da Turma na última avaliação (Limiar Crítico: abaixo de 60% de acerto).</p>
+
+        <table class="diagnosis-table">
+            <thead>
+                <tr>
+                    <th>Turma</th>
+                    <th>Componente Curricular</th>
+                    <th>Habilidade BNCC</th>
+                    <th>Descrição da Habilidade</th>
+                    <th>% de Acerto da Turma</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>7º Ano A</td>
+                    <td>Matemática</td>
+                    <td class="code-bncc">EF07MA05</td>
+                    <td>Proporcionalidade: Identificar e resolver problemas...</td>
+                    <td><span class="badge-low">35%</span></td>
+                </tr>
+                <tr>
+                    <td>9º Ano B</td>
+                    <td>Língua Portuguesa</td>
+                    <td class="code-bncc">EF08LP12</td>
+                    <td>Concordância Verbal e Nominal</td>
+                    <td><span class="badge-medium">58%</span></td>
+                </tr>
+                <tr>
+                    <td>6º Ano C</td>
+                    <td>Ciências</td>
+                    <td class="code-bncc">EF06CI13</td>
+                    <td>Ciclo da Água e Recursos Hídricos</td>
+                    <td><span class="badge-high">81%</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 class="section-title"><i class="fas fa-book-reader"></i> Sugestões de Intervenção Personalizada</h2>
+
+        <p class="text-muted">Planos de aula recomendados da Nova Escola para reforçar as habilidades críticas (abaixo de 60%).</p>
+
+        <div class="recommendation-card">
+            <div class="recommendation-icon"><i class="fas fa-magic"></i></div>
+            <div class="recommendation-content">
+                <div class="recommendation-turma">Reforço Imediato: 7º Ano A (Matemática)</div>
+                <div class="recommendation-bncc">Habilidade Crítica: <span class="code-bncc">EF07MA05</span> (Proporcionalidade)</div>
+                <p><strong>Plano de Aula Sugerido:</strong> **Compreendendo as Razões e Proporções em Gráficos do Dia a Dia** (Fonte: Nova Escola)</p>
+            </div>
+            <a href="https://novaescola.org.br/plano-de-aula-exemplo-proporcao" target="_blank" class="btn-view-plan">Ver Plano Nova Escola</a>
+        </div>
+
+        <div class="recommendation-card">
+            <div class="recommendation-icon"><i class="fas fa-pen-fancy"></i></div>
+            <div class="recommendation-content">
+                <div class="recommendation-turma">Intervenção Leve: 9º Ano B (Língua Portuguesa)</div>
+                <div class="recommendation-bncc">Habilidade Crítica: <span class="code-bncc">EF08LP12</span> (Concordância)</div>
+                <p><strong>Plano de Aula Sugerido:</strong> **Oficina de Escrita: Ajustando o Sujeito e o Verbo (Concordância Nominal e Verbal)** (Fonte: Nova Escola)</p>
+            </div>
+            <a href="https://novaescola.org.br/plano-de-aula-exemplo-concordancia" target="_blank" class="btn-view-plan">Ver Plano Nova Escola</a>
+        </div>
+        
+        <div class="source-note">* Os planos de aula são sugestões externas e abrem em nova aba para consulta.</div>
+
+    </div>
+
+</body>
+</html>

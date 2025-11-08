@@ -1,0 +1,9 @@
+# jogo -> sequencia de frames
+# constante game loop que realiza verificacoes e atualiza as posicoes dos itens
+# handle_events -> reação às interações do usuário com o jogo/janela
+# update_positions -> atualiza as informacoes do frame em relação ao anterior
+# tudo dentro do game_loop
+
+Cores em RGB (red, green, blue) -> 0 a 255
+
+Chamadas de métodos passam o parâmetro (self, x, y), automaticamente, então os métodos das classes precisam receber o "self"
