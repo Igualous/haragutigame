@@ -45,6 +45,7 @@ pygame.display.set_caption("Meu jogo")
 pygame.display.set_icon(player_image_right)
 clock = pygame.time.Clock()
 
+INVINCIBLE_END = pygame.USEREVENT + 0
 class Player(pygame.Rect):
     def __init__(self):
         pygame.Rect.__init__(self, PLAYER_X, PLAYER_Y, PLAYER_WIDTH, PLAYER_HEIGHT)
@@ -53,6 +54,9 @@ class Player(pygame.Rect):
         self.velocity_y = 0
         self.direction = "right"
         self.jumping = False
+        self.invincible = False
+        self.max_health = 28
+        self.health = self.max_health
     
     def update_image(self):
         if self.jumping:
@@ -65,6 +69,10 @@ class Player(pygame.Rect):
                 self.image = player_image_right
             elif self.direction == "left":
                 self.image = player_image_left
+    
+    def set_invincible(self, milliseconds=1000):
+        self.invincible = True
+        pygame.time.set_timer(INVINCIBLE_END, milliseconds, 1)
 class Metall(pygame.Rect):
     def __init__(self, x, y):
         pygame.Rect.__init__(self, x, y, METALL_WIDTH, METALL_HEIGHT)
@@ -89,6 +97,11 @@ def create_map():
     for i in range(3):
         tile = Tile(TILE_SIZE*3, (i+10)*TILE_SIZE, floor_tile_image)
         tiles.append(tile)
+
+    for i in range(3):
+        metall = Metall(player.x + TILE_SIZE*(3+i*1.5), TILE_SIZE*6)
+        metalls.append(metall)
+
 
 def check_tile_collision(character):
     for tile in tiles:
@@ -138,13 +151,20 @@ def move():
     check_tile_collision_y(player)
 
     # enemy y movement
-    metall.velocity_y += GRAVITY
-    metall.y += metall.velocity_y
-    check_tile_collision_y(metall)
+    for metall in metalls:
+        metall.velocity_y += GRAVITY
+        metall.y += metall.velocity_y
+        check_tile_collision_y(metall)
+
+        if player.colliderect(metall) and not player.invincible:
+             print("colisao com metall")
+             player.set_invincible()
+
 
 # start game
 player = Player()
-metall = Metall(player.x + TILE_SIZE*3, TILE_SIZE*6)
+# metall = Metall(player.x + TILE_SIZE*3, TILE_SIZE*6)
+metalls = []
 tiles = []
 create_map()
 
@@ -157,14 +177,17 @@ def draw():
 
     player.update_image()
     window.blit(player.image, player)
-    window.blit(metall.image, metall)
+    for metall in metalls:
+        window.blit(metall.image, metall)
 
-    
 while True: #game loop
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
+
+        if event.type == INVINCIBLE_END:
+            player.invincible = False
 
     keys = pygame.key.get_pressed()
     if (keys[pygame.K_UP] or keys[pygame.K_w]) and not player.jumping:
