@@ -51,6 +51,7 @@ player_image_jump_shoot_right = load_image("megaman-right-jump-shoot.png", (PLAY
 player_image_jump_shoot_left = load_image("megaman-left-jump-shoot.png", (PLAYER_JUMP_SHOOT_WIDTH, PLAYER_JUMP_HEIGHT))
 player_image_bullet = load_image("bullet.png", (PLAYER_BULLET_WIDTH, PLAYER_BULLET_HEIGHT))
 floor_tile_image = load_image("floor-tile.png", (TILE_SIZE, TILE_SIZE))
+metall_image_right = load_image("metall-right.png", (METALL_WIDTH, METALL_HEIGHT))
 metall_image_left = load_image("metall-left.png", (METALL_WIDTH, METALL_HEIGHT))
 health_image = load_image("health.png", (HEALTH_WIDTH, HEALTH_HEIGHT))
 pygame.init()
@@ -134,7 +135,13 @@ class Metall(pygame.Rect):
         self.velocity_y = 0
         self.direction = "left"
         self.jumping = False
-        self.health = 3
+        self.health = 2
+    
+    def update_image(self):
+        if self.direction == "right":
+            self.image = metall_image_right
+        elif self.direction == "left":
+            self.image = metall_image_left
 
 class Tile(pygame.Rect):
     def __init__(self, x, y, image):
@@ -220,14 +227,18 @@ def move():
                       and bullet.x + bullet.width > 0 and bullet.x < GAME_WIDTH]
     metalls = [metall for metall in metalls if metall.health > 0]
 
-    # enemy y movement
+    # enemy movement
     for metall in metalls:
+        if player.x < metall.x:
+            metall.direction = "left"
+        else:
+            metall.direction = "right"
+
         metall.velocity_y += GRAVITY
         metall.y += metall.velocity_y
         check_tile_collision_y(metall)
 
         if player.colliderect(metall) and not player.invincible:
-             print("colisao com metall")
              player.health -= 1
              player.set_invincible()
 
@@ -235,7 +246,6 @@ def move():
 
 # start game
 player = Player()
-# metall = Metall(player.x + TILE_SIZE*3, TILE_SIZE*6)
 metalls = []
 tiles = []
 create_map()
@@ -250,10 +260,11 @@ def draw():
     
     # player
     player.update_image()
+    window.blit(player.image, player)
 
     # enemys
-    window.blit(player.image, player)
     for metall in metalls:
+        metall.update_image()
         window.blit(metall.image, metall)
 
     # health bar
