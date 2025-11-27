@@ -44,7 +44,7 @@ BUCKET_Y = LAKE_Y + LAKE_HEIGHT - BUCKET_HEIGHT - 10
 # enemy variables
 NOIA_WIDTH = 64
 NOIA_HEIGHT = 96
-NOIA_VELOCITY = 0.6
+NOIA_VELOCITY = 0.51
 
 # images
 def load_image(image_name, scale=None):
@@ -80,7 +80,7 @@ clock = pygame.time.Clock()
 
 INVINCIBLE_END = pygame.USEREVENT + 0
 SHOOTING_END = pygame.USEREVENT + 1
-
+LAKE_RECHARGE = pygame.USEREVENT + 2
 class Player(pygame.Rect):
     def __init__(self):
         super().__init__(PLAYER_X, PLAYER_Y, PLAYER_WIDTH, PLAYER_HEIGHT)
@@ -137,7 +137,7 @@ class Player(pygame.Rect):
         if self.with_bucket == True:
             if self.colliderect(lake) and lake.full == True:
                 bucket.full = True
-                lake.full = False
+                lake.start_recharge()
             elif bucket.full == True and self.colliderect(plant):
                 bucket.full = False
                 plant.xp += 1
@@ -184,17 +184,18 @@ class Lake(pygame.Rect):
         super().__init__(LAKE_X, LAKE_Y, LAKE_WIDTH, LAKE_HEIGHT)
         self.image = lake_image_full
         self.full = True
-        self.counter = 0
+        self.recharge_time = 5000 # milliseconds
 
     def update_image(self):
         if self.full == True:
             self.image = lake_image_full
         else:
             self.image = lake_image_empty
-            if self.counter >= 300:
-                self.full = True
-                self.counter = 0
-            self.counter += 1
+    
+    def start_recharge(self):
+        self.full = False
+        # Inicia um timer único (1) que dispara o evento LAKE_RECHARGE após 'recharge_time'
+        pygame.time.set_timer(LAKE_RECHARGE, self.recharge_time, 1)
 
 class Bucket(pygame.Rect):
     def __init__(self):
@@ -323,6 +324,9 @@ while True: # game loop
         elif event.type == SHOOTING_END:
             player.shooting = False
 
+        elif event.type == LAKE_RECHARGE:
+            lake.full = True
+            pygame.time.set_timer(LAKE_RECHARGE, 0)
     keys = pygame.key.get_pressed()
     if (keys[pygame.K_UP] or keys[pygame.K_w]):
         player.velocity_y = -PLAYER_VELOCITY
