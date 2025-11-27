@@ -1,5 +1,5 @@
 import pygame
-from sys import exit
+import sys
 import os
 
 # game variables
@@ -42,9 +42,9 @@ BUCKET_X = LAKE_X - BUCKET_WIDTH - 10
 BUCKET_Y = LAKE_Y + LAKE_HEIGHT - BUCKET_HEIGHT - 10
 
 # enemy variables
-NOIA_WIDTH = 42
-NOIA_HEIGHT = 64
-
+NOIA_WIDTH = 64
+NOIA_HEIGHT = 96
+NOIA_VELOCITY = 0.6
 
 # images
 def load_image(image_name, scale=None):
@@ -142,7 +142,25 @@ class Player(pygame.Rect):
                 bucket.full = False
                 plant.xp += 1
 
-        
+class Noia(pygame.Rect):
+    def __init__(self, x, y):
+        pygame.Rect.__init__(self, x, y, NOIA_WIDTH, NOIA_HEIGHT)
+        self.image = noia_image
+        self.velocity_y = 0
+        self.velocity_x = 0
+        self.direction = "down"
+        self.health = 2
+
+    def update_image(self):
+        if self.direction == "left":
+            self.image = noia_image_left
+        elif self.direction == "right":
+            self.image = noia_image_right
+        elif self.direction == "up":
+            self.image = noia_image_back
+        else:
+            self.image = noia_image 
+
 class Plant(pygame.Rect):
     def __init__(self):
         super().__init__(PLANT_X, PLANT_Y, PLANT_WIDTH, PLANT_HEIGHT)
@@ -178,8 +196,6 @@ class Lake(pygame.Rect):
                 self.counter = 0
             self.counter += 1
 
-        
-
 class Bucket(pygame.Rect):
     def __init__(self):
         super().__init__(BUCKET_X, BUCKET_Y, BUCKET_WIDTH, BUCKET_HEIGHT)
@@ -191,7 +207,22 @@ class Bucket(pygame.Rect):
             self.image = bucket_image_full
         else:
             self.image = bucket_image_empty
+
+def create_map():
+    
+    # noias
+    noia1 = Noia(-70, -70)
+    noias.append(noia1)
+
+    noia2 = Noia(GAME_WIDTH + 10, plant.y)
+    noias.append(noia2)
+
+    noia3 = Noia(-60, GAME_HEIGHT + 20)
+    noias.append(noia3)
+
 def move():
+    global noias
+
     # player x movement
     if player.direction == "left" and player.velocity_x < 0:
         player.velocity_x += FRICTION
@@ -224,12 +255,33 @@ def move():
     if player.with_bucket == True:
         bucket.x = player.x
         bucket.y = player.y + player.height  - bucket.height
-        
+    
+    # enemy movement
+    noias = [noia for noia in noias if noia.health > 0]
+
+    for noia in noias:
+        if noia.x < plant.x:
+            noia.direction = "right"
+            noia.x += NOIA_VELOCITY
+        elif noia.x > plant.x:
+            noia.direction = "left"
+            noia.x -= NOIA_VELOCITY
+        if noia.y < plant.y:
+            noia.direction = "down"
+            noia.y += NOIA_VELOCITY
+        elif noia.y > plant.y:
+            noia.direction = "up"
+            noia.y -= NOIA_VELOCITY
+
+
 # start game
 player = Player()
 plant = Plant()
 lake = Lake()
 bucket = Bucket()
+noias = []
+
+create_map()
 
 def draw():
     window.blit(background_image, (0, 0))
@@ -243,6 +295,11 @@ def draw():
     plant.update_image()
     window.blit(plant.image, plant)
 
+    # enemies
+    for noia in noias:
+        noia.update_image()
+        window.blit(noia.image, noia)
+
     # player and bucket
     player.update_image()
     bucket.update_image()
@@ -254,11 +311,11 @@ def draw():
         window.blit(bucket.image, bucket)
         window.blit(player.image, player)
 
-while True: #game loop
+while True: # game loop
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            exit()
+            sys.exit()
 
         if event.type == INVINCIBLE_END:
             player.invincible = False
