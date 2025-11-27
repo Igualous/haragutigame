@@ -9,7 +9,7 @@ GAME_HEIGHT = 768
 PLAYER_X = GAME_WIDTH / 2
 PLAYER_Y = GAME_HEIGHT / 2
 PLAYER_WIDTH = 42
-PLAYER_HEIGHT = 64
+PLAYER_HEIGHT = 80
 PLAYER_SHOOT_WIDTH = 62
 PLAYER_SHOOT_HEIGHT = PLAYER_HEIGHT
 
@@ -68,7 +68,11 @@ lake_image_empty = load_image("lake-empty.png", (LAKE_WIDTH, LAKE_HEIGHT))
 lake_image_full = load_image("lake-full.png", (LAKE_WIDTH, LAKE_HEIGHT))
 bucket_image_empty = load_image("bucket-empty.png", (BUCKET_WIDTH, BUCKET_HEIGHT))
 bucket_image_full = load_image("bucket-full.png", (BUCKET_WIDTH, BUCKET_HEIGHT))
-
+noia_image = load_image("roger.png", (NOIA_WIDTH, NOIA_HEIGHT))
+noia_image_left = load_image("roger-left.png", (NOIA_WIDTH, NOIA_HEIGHT))
+noia_image_right = load_image("roger-right.png", (NOIA_WIDTH, NOIA_HEIGHT))
+noia_image_back = load_image("roger-back.png", (NOIA_WIDTH, NOIA_HEIGHT))
+noia_image_dead = load_image("roger-dead.png", (NOIA_WIDTH, NOIA_HEIGHT))
 pygame.init()
 window = pygame.display.set_mode((GAME_WIDTH, GAME_HEIGHT))
 pygame.display.set_caption("A Última Semente")
@@ -119,9 +123,26 @@ class Player(pygame.Rect):
     def set_shooting(self):
         if not self.shooting:
             self.shooting = True
+            self.with_bucket = False
             #self.bullets.append(Player.Bullet())
             pygame.time.set_timer(SHOOTING_END, 250, 1)
+    
+    def set_with_bucket(self):
+        if self.with_bucket == False and player.colliderect(bucket):
+            self.with_bucket = True
+        elif self.with_bucket == True:
+            self.with_bucket = False
 
+    def set_bucket_action(self):
+        if self.with_bucket == True:
+            if self.colliderect(lake) and lake.full == True:
+                bucket.full = True
+                lake.full = False
+            elif bucket.full == True and self.colliderect(plant):
+                bucket.full = False
+                plant.xp += 1
+
+        
 class Plant(pygame.Rect):
     def __init__(self):
         super().__init__(PLANT_X, PLANT_Y, PLANT_WIDTH, PLANT_HEIGHT)
@@ -129,9 +150,12 @@ class Plant(pygame.Rect):
         self.max_health = 10
         self.health = self.max_health
         self.direction = "right"
-        self.level = 2
+        self.level = 1
+        self.xp = 0
 
     def update_image(self):
+        if self.xp >= 3 and self.level == 1:
+            self.level = 2
         if self.level == 1:
             self.image = plant_image1
         elif self.level == 2:
@@ -142,12 +166,19 @@ class Lake(pygame.Rect):
         super().__init__(LAKE_X, LAKE_Y, LAKE_WIDTH, LAKE_HEIGHT)
         self.image = lake_image_full
         self.full = True
+        self.counter = 0
 
     def update_image(self):
         if self.full == True:
             self.image = lake_image_full
         else:
             self.image = lake_image_empty
+            if self.counter >= 300:
+                self.full = True
+                self.counter = 0
+            self.counter += 1
+
+        
 
 class Bucket(pygame.Rect):
     def __init__(self):
@@ -215,6 +246,7 @@ def draw():
     # player and bucket
     player.update_image()
     bucket.update_image()
+    
     if player.with_bucket == True and player.direction in ["left", "down", "right"]:
         window.blit(player.image, player)
         window.blit(bucket.image, bucket)
@@ -253,8 +285,14 @@ while True: #game loop
 
     if keys[pygame.K_x] or keys[pygame.K_SPACE]:
         player.set_shooting()
+    
+    if keys[pygame.K_e]:
+        player.set_with_bucket()
+    
+    if keys[pygame.K_r]:
+        player.set_bucket_action()
 
     move()
     draw()
     pygame.display.update()
-    clock.tick(60) #60 frames per second (fps)
+    clock.tick(50) #60 frames per second (fps)
