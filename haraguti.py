@@ -18,7 +18,7 @@ FRICTION = 0.7
 
 PLAYER_BULLET_WIDTH = 16
 PLAYER_BULLET_HEIGHT = 12
-PLAYER_BULLET_VELOCITY = 8
+PLAYER_PROJECTILE_VELOCITY = 8
 
 HEALTH_WIDTH = 64
 HEALTH_HEIGHT = 4
@@ -33,10 +33,10 @@ PLANT_HEIGHT = 64
 LAKE_WIDTH = 256
 LAKE_HEIGHT = 128
 LAKE_X = GAME_WIDTH * 2/3 - LAKE_WIDTH / 2
-LAKE_Y = - LAKE_HEIGHT / 3
+LAKE_Y = - LAKE_HEIGHT / 4
 
 # bucket variables
-BUCKET_WIDTH = 32
+BUCKET_WIDTH = 40
 BUCKET_HEIGHT = BUCKET_WIDTH
 BUCKET_X = LAKE_X - BUCKET_WIDTH - 10
 BUCKET_Y = LAKE_Y + LAKE_HEIGHT - BUCKET_HEIGHT - 10
@@ -44,7 +44,12 @@ BUCKET_Y = LAKE_Y + LAKE_HEIGHT - BUCKET_HEIGHT - 10
 # enemy variables
 NOIA_WIDTH = 64
 NOIA_HEIGHT = 96
-NOIA_VELOCITY = 0.51
+NOIA_SIDE_WIDTH = NOIA_WIDTH - 25
+NOIA_VELOCITY = 0.501
+
+# items variables
+STONE_WIDTH = 32
+STONE_HEIGHT = 16
 
 # images
 def load_image(image_name, scale=None):
@@ -64,15 +69,20 @@ player_image_shoot_back = load_image("zinho-back-shoot.png", (PLAYER_WIDTH,PLAYE
 player_shoot_image = load_image("zinho-down-shoot.png", (PLAYER_WIDTH, PLAYER_HEIGHT))
 plant_image1 = load_image("planta-01.png", (PLANT_WIDTH, PLANT_HEIGHT))
 plant_image2 = load_image("planta-02.png", (PLANT_WIDTH, PLANT_HEIGHT))
+plant_image3 = load_image("planta-03.png", (PLANT_WIDTH, PLANT_HEIGHT))
+plant_image4 = load_image("planta-04.png", (PLANT_WIDTH, PLANT_HEIGHT))
+plant_image5_right = load_image("planta-05-right.png", (PLANT_WIDTH, PLANT_HEIGHT))
+plant_image5_left = load_image("planta-05-left.png", (PLANT_WIDTH, PLANT_HEIGHT))
 lake_image_empty = load_image("lake-empty.png", (LAKE_WIDTH, LAKE_HEIGHT))
 lake_image_full = load_image("lake-full.png", (LAKE_WIDTH, LAKE_HEIGHT))
 bucket_image_empty = load_image("bucket-empty.png", (BUCKET_WIDTH, BUCKET_HEIGHT))
 bucket_image_full = load_image("bucket-full.png", (BUCKET_WIDTH, BUCKET_HEIGHT))
 noia_image = load_image("roger.png", (NOIA_WIDTH, NOIA_HEIGHT))
-noia_image_left = load_image("roger-left.png", (NOIA_WIDTH, NOIA_HEIGHT))
-noia_image_right = load_image("roger-right.png", (NOIA_WIDTH, NOIA_HEIGHT))
+noia_image_left = load_image("roger-left.png", (NOIA_SIDE_WIDTH, NOIA_HEIGHT))
+noia_image_right = load_image("roger-right.png", (NOIA_SIDE_WIDTH, NOIA_HEIGHT))
 noia_image_back = load_image("roger-back.png", (NOIA_WIDTH, NOIA_HEIGHT))
 noia_image_dead = load_image("roger-dead.png", (NOIA_WIDTH, NOIA_HEIGHT))
+stone_image = load_image("stone.png", (32, 32))
 pygame.init()
 window = pygame.display.set_mode((GAME_WIDTH, GAME_HEIGHT))
 pygame.display.set_caption("A Última Semente")
@@ -93,6 +103,7 @@ class Player(pygame.Rect):
         self.health = self.max_health
         self.shooting = False
         self.bullets = []
+        self.stones  = []
         self.with_bucket = True
 
     def update_image(self):
@@ -174,10 +185,26 @@ class Plant(pygame.Rect):
     def update_image(self):
         if self.xp >= 3 and self.level == 1:
             self.level = 2
+        elif self.xp >= 6 and self.level == 2:
+            self.level = 3
+        elif self.xp >= 10 and self.level == 3:
+            self.level = 4
+        elif self.xp >= 15 and self.level == 4:
+            self.level = 5
+
         if self.level == 1:
             self.image = plant_image1
         elif self.level == 2:
             self.image = plant_image2
+        elif self.level == 3:
+            self.image = plant_image3
+        elif self.level == 4:
+            self.image = plant_image4
+        elif self.level == 5:
+            if self.direction == "right":
+                self.image = plant_image5_right
+            else:
+                self.image = plant_image5_left
 
 class Lake(pygame.Rect):
     def __init__(self):
@@ -209,17 +236,34 @@ class Bucket(pygame.Rect):
         else:
             self.image = bucket_image_empty
 
+class Stone(pygame.Rect):
+    def __init__(self):
+        super().__init__(self)
+        self.image = stone_image
+        self.damage = 1
+        if player.direction == "left":
+                pygame.Rect.__init__(self, player.x, player.y + PLAYER_HEIGHT / 2, STONE_WIDTH, STONE_HEIGHT)
+
+                self.velocity = - PLAYER_PROJECTILE_VELOCITY
+            
+        elif player.direction == "right":
+            pygame.Rect.__init__(self, player.x + player.width, player.y + PLAYER_HEIGHT / 2, STONE_WIDTH, STONE_HEIGHT)
+
+            self.velocity = PLAYER_PROJECTILE_VELOCITY
+            
+        self.used = False
+
 def create_map():
-    
+    print("Creating map...")
     # noias
-    noia1 = Noia(-70, -70)
-    noias.append(noia1)
+    # noia1 = Noia(-70, -70)
+    # noias.append(noia1)
 
-    noia2 = Noia(GAME_WIDTH + 10, plant.y)
-    noias.append(noia2)
+    # noia2 = Noia(GAME_WIDTH + 10, plant.y)
+    # noias.append(noia2)
 
-    noia3 = Noia(-60, GAME_HEIGHT + 20)
-    noias.append(noia3)
+    # noia3 = Noia(-60, GAME_HEIGHT + 20)
+    # noias.append(noia3)
 
 def move():
     global noias
@@ -347,11 +391,12 @@ while True: # game loop
     if keys[pygame.K_x] or keys[pygame.K_SPACE]:
         player.set_shooting()
     
-    if keys[pygame.K_e]:
-        player.set_with_bucket()
-    
     if keys[pygame.K_r]:
         player.set_bucket_action()
+    
+    if event.type == pygame.KEYUP:
+        if event.key == pygame.K_e:
+            player.set_with_bucket()
 
     move()
     draw()
