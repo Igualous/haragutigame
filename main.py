@@ -33,6 +33,12 @@ HEALTH_HEIGHT = 4
 METALL_WIDTH = 36
 METALL_HEIGHT = 30
 
+METALL_BULLET_WIDTH = 12
+METALL_BULLET_HEIGHT = METALL_BULLET_WIDTH
+
+METALL_BULLET_VELOCITY_X = 2
+METALL_BULLET_VELOCITY_Y = METALL_BULLET_VELOCITY_X
+
 #images
 def load_image(image_name, scale=None):
     image = pygame.image.load(os.path.join("media", image_name))
@@ -53,6 +59,9 @@ player_image_bullet = load_image("bullet.png", (PLAYER_BULLET_WIDTH, PLAYER_BULL
 floor_tile_image = load_image("floor-tile.png", (TILE_SIZE, TILE_SIZE))
 metall_image_right = load_image("metall-right.png", (METALL_WIDTH, METALL_HEIGHT))
 metall_image_left = load_image("metall-left.png", (METALL_WIDTH, METALL_HEIGHT))
+metall_image_guard_right = load_image("metall-right-guard.png", (METALL_WIDTH, METALL_HEIGHT))
+metall_image_guard_left = load_image("metall-left-guard.png", (METALL_WIDTH, METALL_HEIGHT))
+metall_image_bullet = load_image("metall-bullet.png", (METALL_BULLET_WIDTH, METALL_BULLET_HEIGHT))
 health_image = load_image("health.png", (HEALTH_WIDTH, HEALTH_HEIGHT))
 pygame.init()
 window = pygame.display.set_mode((GAME_WIDTH, GAME_HEIGHT))
@@ -129,6 +138,18 @@ class Player(pygame.Rect):
             pygame.time.set_timer(SHOOTING_END, 250, 1)
 
 class Metall(pygame.Rect):
+    class Bullet(pygame.Rect):
+        def __init__(self, metall, velocity_y):
+            if metall.direction == "left":
+                pygame.Rect.__init__(self, metall.x, metall.y + TILE_SIZE/2, METALL_BULLET_WIDTH, METALL_BULLET_HEIGHT)
+                self.velocity_x = -METALL_BULLET_VELOCITY_X
+            elif metall.direction == "right":
+                pygame.Rect.__init__(self, metall.x + metall.width, metall.y + TILE_SIZE/2, METALL_BULLET_WIDTH, METALL_BULLET_HEIGHT)
+                self.velocity_x = METALL_BULLET_VELOCITY_X
+            
+            self.velocity_y = velocity_y
+            self.image = metall_image_bullet
+            self.used = False
     def __init__(self, x, y):
         pygame.Rect.__init__(self, x, y, METALL_WIDTH, METALL_HEIGHT)
         self.image = metall_image_left
@@ -136,12 +157,28 @@ class Metall(pygame.Rect):
         self.direction = "left"
         self.jumping = False
         self.health = 2
+        self.bullets = []
+        self.shooting = False
+        self.last_fired = pygame.time.get_ticks()
+        self.guarding = False
     
     def update_image(self):
         if self.direction == "right":
             self.image = metall_image_right
         elif self.direction == "left":
             self.image = metall_image_left
+    
+    def set_shooting(self):
+        if abs(self.x - player.x) <= TILE_SIZE*4:
+            now = pygame.time.get_ticks()
+            if now - self.last_fired > 1000:
+                self.last_fired = now
+                self.shooting = True
+                self.bullets.append(Metall.Bullet(self, -METALL_BULLET_VELOCITY_Y))
+                self.bullets.append(Metall.Bullet(self, 0))
+                self.bullets.append(Metall.Bullet(self, METALL_BULLET_VELOCITY_Y))
+
+
 
 class Tile(pygame.Rect):
     def __init__(self, x, y, image):
@@ -241,6 +278,18 @@ def move():
         if player.colliderect(metall) and not player.invincible:
              player.health -= 1
              player.set_invincible()
+        
+        # enemy bullets
+        metall.set_shooting()
+        for bullet in metall.bullets:
+            bullet.x += bullet.velocity_x
+            bullet.y += bullet.velocity_y
+            if not player.invincible and player.colliderect(bullet):
+                player.health -= 2
+                player.set_invincible()
+        
+        metall.bullets = [bullet for bullet in metall.bullets if not bullet.used \
+                          and bullet.x + bullet.width > 0 and bullet.x < GAME_WIDTH]
 
 
 
@@ -262,19 +311,22 @@ def draw():
     player.update_image()
     window.blit(player.image, player)
 
+    # bullets 
+    for bullet in player.bullets:
+        window.blit(bullet.image, bullet)
+
     # enemys
     for metall in metalls:
         metall.update_image()
         window.blit(metall.image, metall)
+        for bullet in metall.bullets:
+            window.blit(bullet.image, bullet)
 
     # health bar
     pygame.draw.rect(window, "black", (TILE_SIZE, TILE_SIZE, HEALTH_WIDTH, HEALTH_HEIGHT * player.max_health))
     for i in range(player.max_health - player.health, player.max_health):
         window.blit(health_image, (TILE_SIZE,  TILE_SIZE + i*HEALTH_HEIGHT, HEALTH_WIDTH, HEALTH_HEIGHT))
 
-    # bullets 
-    for bullet in player.bullets:
-        window.blit(bullet.image, bullet)
 
 while True: #game loop
     for event in pygame.event.get():
